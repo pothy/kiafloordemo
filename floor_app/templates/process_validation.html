@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Process Validation – {{ target_process.code }} ({{ target_process.name }}){% endblock %}
+{% block header_title %}{{ target_process.code }} - {{ target_process.name }}{% endblock %}
+
+{% block content %}
+<script>
+  window.currentProcessCode = "{{ target_process.code }}";
+</script>
+
+<!-- OPERATOR STATION ACCESS BANNER (MATCHING REFERENCE IMAGE TOP-RIGHT) -->
+{% if current_user.role == 'OPERATOR' and current_user.assigned_process %}
+<div class="operator-info-banner shadow-sm">
+  <i class="bi bi-check-circle-fill text-success"></i>
+  <div>
+    <strong class="d-block" style="font-size: 14px;">You are logged in as {{ current_user.full_name }}</strong>
+    <span style="font-size: 13px;">You can access only {{ current_user.assigned_process.code }} ({{ current_user.assigned_process.name }}) process.</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- PROCESS TAB NAVIGATION HEADER (VISIBLE FOR ADMIN) -->
+{% if current_user.role == 'ADMIN' %}
+<div class="process-tab-nav">
+  {% for item in process_tabs %}
+    {% if item.is_unlocked %}
+      <a href="{% url 'process_validation' item.process.code %}?barcode={{ unit.barcode }}" 
+         class="process-tab-btn {% if item.process.code == target_process.code %}active{% endif %}">
+        <span class="tab-code">{{ item.process.code }}</span>
+        <span class="tab-title">{{ item.process.name }}</span>
+        {% if item.status == 'COMPLETED' %}
+          <span class="badge bg-success mt-1" style="font-size: 9px;"><i class="bi bi-check-lg"></i> DONE</span>
+        {% elif item.status == 'FAILED' %}
+          <span class="badge bg-danger mt-1" style="font-size: 9px;">NG</span>
+        {% endif %}
+      </a>
+    {% else %}
+      <div class="process-tab-btn locked" title="{{ item.unlock_msg }}">
+        <span class="tab-code"><i class="bi bi-lock-fill text-muted me-1"></i>{{ item.process.code }}</span>
+        <span class="tab-title">{{ item.process.name }}</span>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- PROCESS UNLOCK / LOCK WARNING ALERT -->
+{% if not is_unlocked and current_user.role == 'ADMIN' %}
+<div class="alert alert-warning border-warning d-flex align-items-center mb-4" role="alert">
+  <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+  <div>
+    <strong class="d-block">Process Locked!</strong>
+    <span>{{ unlock_msg }} Please complete and PASS the prerequisite process first.</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- CONTROLLED NG FAIL REASON BANNER -->
+<div id="failBanner" class="alert alert-danger border-danger mb-4" style="display: {% if scenario == 'FAIL' %}block{% else %}none{% endif %};">
+  <div class="d-flex align-items-center">
+    <i class="bi bi-x-octagon-fill fs-4 me-3 text-danger"></i>
+    <div>
+      <strong class="d-block text-danger fs-6">NG Condition Detected (FAIL Mode)</strong>
+      <span id="failReasonText" class="fw-semibold">{{ demo_data.failure_reason }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN WORK AREA -->
+<div class="row g-4">
+  <!-- LEFT COLUMN (8 COLS): BASIC INFO, OPTION INFO, SUBPARTS, SCREW INFO -->
+  <div class="col-lg-8">
+    
+    <!-- 1. BASIC INFORMATION CARD -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-card-heading text-primary me-2"></i> Basic Information</h6>
+        <span class="badge bg-light text-muted border">Station: {{ current_user.station_code }}</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Barcode</label>
+            <div class="input-group">
+              <input type="text" id="barcodeInput" class="form-control fw-bold" value="{{ unit.barcode }}" style="font-family: monospace;">
+              <button class="btn btn-primary fw-bold" type="button" onclick="generateNewBarcode()">
+                <i class="bi bi-upc-scan me-1"></i> Generate
+              </button>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Part No.</label>
+            <input type="text" class="form-control bg-light fw-semibold" value="{{ demo_data.base.part_no }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Car Type</label>
+            <input type="text" class="form-control bg-light fw-bold" value="{{ demo_data.base.car_type }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">ALC</label>
+            <input type="text" class="form-control bg-light fw-bold" value="{{ demo_data.base.alc }}" readonly>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Lot No.</label>
+            <input type="text" class="form-control bg-light" value="{{ demo_data.base.lot_no }}" readonly>
+          </div>
+          <div class="col-md-1-5 col-6">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Order Qty</label>
+            <input type="text" class="form-control bg-light text-center fw-semibold" value="{{ demo_data.base.order_qty }}" readonly>
+          </div>
+          <div class="col-md-1-5 col-6">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Production Qty</label>
+            <input type="text" class="form-control bg-light text-center fw-bold text-primary" value="{{ demo_data.base.production_qty }}" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. OPTION INFORMATION CARD -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-sliders text-primary me-2"></i> Option Information</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% if target_process.code == 'P10' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Console</label>
+              <select id="opt_console" class="form-select fw-semibold"><option value="DLX" selected>DLX</option><option value="STD">STD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Drive</label>
+              <select id="opt_drive" class="form-select fw-semibold"><option value="LHD" selected>LHD</option><option value="RHD">RHD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Mission</label>
+              <select id="opt_mission" class="form-select fw-semibold"><option value="AUTO" selected>AUTO</option><option value="MANUAL">MANUAL</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Body Side Color</label>
+              <select id="opt_body_side_color" class="form-select fw-semibold"><option value="N2V" selected>N2V</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Armrest Type</label>
+              <select id="opt_armrest_type" class="form-select fw-semibold"><option value="STD" selected>STD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Armrest Color</label>
+              <select id="opt_armrest_color" class="form-select fw-semibold"><option value="BLACK" selected>BLACK</option></select>
+            </div>
+
+          {% elif target_process.code == 'P30' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Console</label>
+              <select id="opt_console" class="form-select fw-semibold"><option value="DLX" selected>DLX</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Drive</label>
+              <select id="opt_drive" class="form-select fw-semibold"><option value="LHD" selected>LHD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Mission</label>
+              <select id="opt_mission" class="form-select fw-semibold"><option value="AUTO" selected>AUTO</option></select>
+            </div>
+
+          {% elif target_process.code == 'P40' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Console</label>
+              <select id="opt_console" class="form-select fw-semibold"><option value="DLX" selected>DLX</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Drive</label>
+              <select id="opt_drive" class="form-select fw-semibold"><option value="LHD" selected>LHD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Mission</label>
+              <select id="opt_mission" class="form-select fw-semibold"><option value="AUTO" selected>AUTO</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Body Side Color</label>
+              <select id="opt_body_side_color" class="form-select fw-semibold"><option value="N2V" selected>N2V</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Garnish Type</label>
+              <select id="opt_garnish_type" class="form-select fw-semibold"><option value="STD" selected>STD</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Garnish Color</label>
+              <select id="opt_garnish_color" class="form-select fw-semibold"><option value="BLACK" selected>BLACK</option></select>
+            </div>
+
+          {% elif target_process.code == 'P50' %}
+            <div class="col-md-6">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">RRCVR Type</label>
+              <select id="opt_rrcvr_type" class="form-select fw-semibold"><option value="DLX" selected>DLX</option></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">RRCVR Color</label>
+              <select id="opt_rrcvr_color" class="form-select fw-semibold"><option value="BLACK" selected>BLACK</option></select>
+            </div>
+
+          {% elif target_process.code == 'P60' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">RRCVR Type</label>
+              <select id="opt_rrcvr_type" class="form-select fw-semibold"><option value="DLX" selected>DLX</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Rework Mode</label>
+              <select id="opt_rework_mode" class="form-select fw-semibold"><option value="NORMAL" selected>NORMAL</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">BRK Information</label>
+              <select id="opt_brk_info" class="form-select fw-semibold"><option value="STD(LR)" selected>STD(LR)</option></select>
+            </div>
+
+          {% elif target_process.code == 'P41' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Garnish Type</label>
+              <select id="opt_garnish_type" class="form-select fw-semibold"><option value="HIGH_GLOSS" selected>HIGH_GLOSS</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Garnish Color</label>
+              <select id="opt_garnish_color" class="form-select fw-semibold"><option value="PIANO_BLACK" selected>PIANO_BLACK</option></select>
+            </div>
+
+          {% elif target_process.code == 'P51' %}
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">RRCVR Type</label>
+              <select id="opt_rrcvr_type" class="form-select fw-semibold"><option value="PREMIUM" selected>PREMIUM</option></select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">RRCVR Color</label>
+              <select id="opt_rrcvr_color" class="form-select fw-semibold"><option value="BLACK" selected>BLACK</option></select>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SUB PARTS INFORMATION TABLE -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-cpu text-primary me-2"></i> Sub Parts Information</h6>
+        <span class="badge bg-light text-muted border">Scanner Active</span>
+      </div>
+      <div class="card-body p-0">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th>Part Code</th>
+              <th>Description</th>
+              <th style="width: 100px;">Result</th>
+            </tr>
+          </thead>
+          <tbody id="subpartsTbody">
+            {% for item in demo_data.subparts %}
+            <tr>
+              <td class="fw-bold">{{ item.seq }}</td>
+              <td><code>{{ item.code }}</code></td>
+              <td>{{ item.desc }}</td>
+              <td>
+                {% if item.result == 'OK' %}
+                  <span class="status-pill pill-pass">OK</span>
+                {% else %}
+                  <span class="status-pill pill-fail">NG</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. SCREW INFORMATION TABLE -->
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-tools text-primary me-2"></i> Screw Information</h6>
+        <span class="badge bg-light text-muted border">Torque Controller Online</span>
+      </div>
+      <div class="card-body p-0">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Scanned</th>
+              <th style="width: 100px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="screwsTbody">
+            {% for sc in demo_data.screws %}
+            <tr>
+              <td class="fw-bold">{{ sc.type }}</td>
+              <td>{{ sc.required }}</td>
+              <td><strong>{{ sc.scanned }}</strong></td>
+              <td>
+                {% if sc.status == 'OK' %}
+                  <span class="status-pill pill-pass">OK</span>
+                {% else %}
+                  <span class="status-pill pill-fail">NG</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN (4 COLS): PRODUCT IMAGE & HARDWARE STATUS -->
+  <div class="col-lg-4">
+    
+    <!-- PRODUCT IMAGE CARD -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-image text-primary me-2"></i> Product Image</h6>
+        <button class="btn btn-sm btn-light border"><i class="bi bi-arrows-angle-expand"></i></button>
+      </div>
+      <div class="card-body text-center p-3">
+        <div class="product-image-container">
+          <img src="{% static 'images/kia_console_assembly.png' %}" alt="Product Assembly Image" class="img-fluid">
+        </div>
+        <div class="mt-2 text-muted fw-semibold" style="font-size: 12px;">
+          Kia Console ASSY – {{ target_process.name }}
+        </div>
+      </div>
+    </div>
+
+    <!-- HARDWARE STATUS CARD -->
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-router text-primary me-2"></i> Station Hardware</h6>
+      </div>
+      <div class="card-body" style="font-size: 13px;">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <span><i class="bi bi-cpu-fill me-2 text-success"></i> PLC MELSEC (TCP)</span>
+          <span class="badge bg-success">CONNECTED</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <span><i class="bi bi-upc-scan me-2 text-primary"></i> Barcode Scanner</span>
+          <span class="badge bg-primary">READY</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <span><i class="bi bi-wrench-adjustable me-2 text-info"></i> Torque Controller</span>
+          <span class="badge bg-info text-dark">ONLINE</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-database-check me-2 text-dark"></i> SQL Server DB</span>
+          <span class="badge bg-secondary">CONNECTED</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM DOCK ACTION BAR -->
+<div class="bottom-action-bar">
+  <div class="demo-selector-group">
+    <label class="fw-bold text-dark mb-0 me-2" style="font-size: 14px;">Demo Result:</label>
+    <select id="scenarioSelect" class="select-scenario {% if scenario == 'SUCCESS' %}success-mode{% else %}fail-mode{% endif %}" onchange="loadScenarioData(this.value)">
+      <option value="SUCCESS" {% if scenario == 'SUCCESS' %}selected{% endif %}>SUCCESS (All Checks PASS)</option>
+      <option value="FAIL" {% if scenario == 'FAIL' %}selected{% endif %}>FAIL (Trigger Controlled NG)</option>
+    </select>
+  </div>
+
+  <div class="d-flex align-items-center gap-3">
+    <button type="button" class="btn-kia-secondary" onclick="loadScenarioData(document.getElementById('scenarioSelect').value)">
+      <i class="bi bi-arrow-counterclockwise"></i> Reset
+    </button>
+    <button type="button" class="btn-kia-primary" onclick="submitProcessResult()">
+      Submit & Continue <i class="bi bi-arrow-right"></i>
+    </button>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports – Floor Work History{% endblock %}
+{% block header_title %}Reports – Floor Work History{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-3">
+  <!-- CARD HEADER & FILTER FORM -->
+  <div class="card-header bg-white py-3 border-bottom">
+    <form method="GET" action="{% url 'reports' %}" class="row g-3 align-items-end">
+      <div class="col-md-2 col-6">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">From Date</label>
+        <input type="date" name="from_date" class="form-control form-control-sm" value="2026-09-01">
+      </div>
+      <div class="col-md-2 col-6">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">To Date</label>
+        <input type="date" name="to_date" class="form-control form-control-sm" value="2026-09-24">
+      </div>
+      <div class="col-md-2 col-6">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Process</label>
+        <select name="process" class="form-select form-select-sm">
+          <option value="">All Processes</option>
+          {% for p in processes %}
+            <option value="{{ p.code }}" {% if current_process_filter == p.code %}selected{% endif %}>{{ p.code }} ({{ p.name }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 col-6">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Result</label>
+        <select name="result" class="form-select form-select-sm">
+          <option value="">All Results</option>
+          <option value="PASS" {% if current_result_filter == 'PASS' %}selected{% endif %}>PASS</option>
+          <option value="FAIL" {% if current_result_filter == 'FAIL' %}selected{% endif %}>FAIL</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-8">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Part No / Barcode</label>
+        <input type="text" name="q" class="form-control form-control-sm" placeholder="Search barcode..." value="{{ search_query }}">
+      </div>
+      <div class="col-md-1 col-4">
+        <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold"><i class="bi bi-search"></i> Search</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RESULTS DATA TABLE -->
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th style="width: 50px;">#</th>
+            <th>Time</th>
+            <th>Barcode</th>
+            <th>Process</th>
+            <th>Part No.</th>
+            <th style="width: 90px;">Result</th>
+            <th>Operator</th>
+            <th>Failure Reason / Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td class="fw-bold">{{ forloop.counter }}</td>
+            <td class="text-muted" style="font-size: 12px;">{{ r.timestamp|date:"Y-m-d H:i:s" }}</td>
+            <td><code>{{ r.production_unit.barcode }}</code></td>
+            <td><span class="badge bg-light text-dark border fw-bold">{{ r.process.code }}</span></td>
+            <td>{{ r.production_unit.part_no }}</td>
+            <td>
+              {% if r.result == 'PASS' %}
+                <span class="status-pill pill-pass">PASS</span>
+              {% else %}
+                <span class="status-pill pill-fail">FAIL</span>
+              {% endif %}
+            </td>
+            <td>{{ r.operator_id }}</td>
+            <td class="text-muted" style="font-size: 12px;">{{ r.failure_reason|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">No validation history records found matching criteria.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CARD FOOTER ACTIONS -->
+  <div class="card-footer bg-white py-3 d-flex align-items-center justify-content-between border-top">
+    <div class="text-muted" style="font-size: 13px;">
+      Showing <strong>{{ results|length }}</strong> history logs
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'export_excel' %}" class="btn btn-sm btn-success fw-bold me-2">
+        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
+      </a>
+      <button onclick="window.print()" class="btn btn-sm btn-outline-primary fw-bold">
+        <i class="bi bi-printer-fill me-1"></i> Print
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}

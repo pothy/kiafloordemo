@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Please Wait – {{ target_process.code }}{% endblock %}
+{% block header_title %}{{ target_process.code }} - {{ target_process.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5">
+  
+  <!-- PLEASE WAIT CARD MATCHING REFERENCE IMAGE BOTTOM-MIDDLE -->
+  <div class="card border-0 shadow-lg rounded-4 text-center p-4 p-md-5" style="max-width: 680px; width: 100%; background: #FFFDF5; border: 1px solid #FEF08A !important;">
+    
+    <!-- CLOCK ICON -->
+    <div class="mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background: #FEF3C7; border: 2px solid #FDE047;">
+        <i class="bi bi-clock-history fs-1 text-warning"></i>
+      </div>
+    </div>
+
+    <!-- TITLE & SUBTITLE -->
+    <h3 class="fw-extrabold text-dark mb-1">Please Wait</h3>
+    <p class="text-muted fs-6 mb-4">
+      Request is currently in progress with <strong class="text-dark">{{ active_request.current_process.code }} - {{ active_request.current_process.name }}</strong>
+    </p>
+
+    <!-- IN-PROGRESS DETAILS BOX -->
+    <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 text-start bg-white" style="border: 1px solid #E2E8F0 !important;">
+      <div class="row g-3" style="font-size: 13px;">
+        <div class="col-6 text-muted">Request ID</div>
+        <div class="col-6 font-monospace fw-bold text-dark text-end">{{ active_request.request_id }}</div>
+        
+        <div class="col-6 text-muted">Model</div>
+        <div class="col-6 fw-bold text-dark text-end">{{ active_request.car_type }} (ALC: {{ active_request.alc }})</div>
+        
+        <div class="col-6 text-muted">&bull; Current Process</div>
+        <div class="col-6 fw-bold text-primary text-end">{{ active_request.current_process.code }} - {{ active_request.current_process.name }}</div>
+        
+        <div class="col-6 text-muted">&bull; Operator</div>
+        <div class="col-6 fw-bold text-dark text-end">{{ active_request.assigned_operator.operator_id }} ({{ active_request.assigned_operator.full_name }})</div>
+        
+        <div class="col-6 text-muted">Start Time</div>
+        <div class="col-6 text-muted text-end">{{ active_request.created_at|date:"Y-m-d H:i" }}</div>
+      </div>
+    </div>
+
+    <!-- PROCESS PIPELINE NODES VISUALIZER -->
+    <div class="d-flex align-items-center justify-content-between my-3 px-3">
+      {% for proc in all_processes %}
+      <div class="text-center">
+        <div class="node-circle {% if proc.sequence < target_process.sequence %}completed{% elif proc.code == active_request.current_process.code %}current{% else %}pending{% endif %}" style="width: 28px; height: 28px; font-size: 11px;">
+          {% if proc.sequence < target_process.sequence %}
+            <i class="bi bi-check-lg"></i>
+          {% elif proc.code == active_request.current_process.code %}
+            <i class="bi bi-arrow-repeat"></i>
+          {% else %}
+            {{ proc.sequence }}
+          {% endif %}
+        </div>
+        <div class="fw-bold" style="font-size: 11px; margin-top: 4px;">{{ proc.code }}</div>
+        <div class="text-muted" style="font-size: 9px;">
+          {% if proc.code == active_request.current_process.code %}
+            In Progress
+          {% elif proc.code == target_process.code %}
+            Waiting
+          {% else %}
+            Pending
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- FOOTER BELL NOTICE -->
+    <div class="mt-4 pt-3 border-top text-muted small fw-semibold">
+      <i class="bi bi-bell-fill text-warning me-1"></i> You will be notified automatically once {{ active_request.current_process.code }} is completed.
+    </div>
+
+  </div>
+</div>
+{% endblock %}

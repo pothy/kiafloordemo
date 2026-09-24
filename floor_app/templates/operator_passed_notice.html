@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Passed Station – {{ target_process.code }}{% endblock %}
+{% block header_title %}{{ target_process.code }} - {{ target_process.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5">
+  <div class="card border-0 shadow-lg rounded-4 text-center p-4 p-md-5" style="max-width: 600px; background: #ECFDF5; border: 1px solid #A7F3D0 !important;">
+    <div class="mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background: #D1FAE5; border: 2px solid #10B981;">
+        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+      </div>
+    </div>
+
+    <h3 class="fw-bold text-dark mb-2">Station Operation Passed</h3>
+    <p class="text-muted fs-6 mb-4">
+      Request <strong>{{ active_request.request_id }}</strong> completed <strong>{{ target_process.code }}</strong> successfully and is currently in progress at 
+      <strong class="text-primary">{{ active_request.current_process.code }} - {{ active_request.current_process.name }}</strong>.
+    </p>
+
+    <div class="alert alert-success border-0 rounded-3 d-flex align-items-center gap-3 p-3 mb-4 text-start" style="background: #D1FAE5; color: #065F46;">
+      <i class="bi bi-info-circle-fill fs-4 text-success"></i>
+      <div style="font-size: 13px;">
+        All checks for {{ target_process.code }} passed. Please wait for the next production unit to arrive.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

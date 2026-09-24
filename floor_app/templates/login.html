@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in – KIA Floor Process Validation System</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <!-- Custom KIA Theme CSS -->
+  <link rel="stylesheet" href="{% static 'css/kia_theme.css' %}">
+</head>
+<body class="kia-login-body">
+
+  <div class="kia-login-container">
+    
+    <!-- LEFT SIDE – CINEMATIC AUTOMOTIVE FACTORY ENVIRONMENT -->
+    <div class="kia-login-left">
+      
+      <!-- TOP LEFT BRANDING -->
+      <div class="kia-brand-top">
+        <div class="d-flex align-items-center gap-3">
+          <!-- Stylized KIA Logo SVG -->
+          <svg style="height: 30px; width: 80px;" viewBox="0 0 120 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 2L2 28H14L20 16L26 28H38L25 2Z" fill="#FFFFFF"/>
+            <path d="M45 2H57V28H45V2Z" fill="#FFFFFF"/>
+            <path d="M85 2L72 28H84L90 16L96 28H108L95 2Z" fill="#FFFFFF"/>
+          </svg>
+          <div class="border-start ps-3" style="border-color: rgba(255,255,255,0.25) !important;">
+            <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 0.5px; font-size: 16px;">FLOOR PROCESS</h5>
+            <span class="fw-semibold" style="color: #2E90FA; font-size: 13px; letter-spacing: 1px;">VALIDATION SYSTEM</span>
+          </div>
+        </div>
+        <div class="kia-left-tagline mt-2">
+          QUALITY &bull; PRECISION &bull; EXCELLENCE
+        </div>
+      </div>
+
+      <!-- 4 GLASSMORPHISM FEATURE CARDS -->
+      <div class="feature-cards-grid">
+        <div class="feature-glass-panel">
+          <div class="feature-icon-box">
+            <i class="bi bi-gear-fill"></i>
+          </div>
+          <div>
+            <div class="feature-title">Sequential Process Control</div>
+            <div class="feature-sub">P10 &rarr; P30 &rarr; P40 &rarr; P50 &rarr; P60 &rarr; P41 &rarr; P51</div>
+          </div>
+        </div>
+
+        <div class="feature-glass-panel">
+          <div class="feature-icon-box">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <div>
+            <div class="feature-title">Real-time Validation</div>
+            <div class="feature-sub">Part / Sub Part / Screw Check</div>
+          </div>
+        </div>
+
+        <div class="feature-glass-panel">
+          <div class="feature-icon-box">
+            <i class="bi bi-bar-chart-line-fill"></i>
+          </div>
+          <div>
+            <div class="feature-title">Production Tracking</div>
+            <div class="feature-sub">Complete History & Reports</div>
+          </div>
+        </div>
+
+        <div class="feature-glass-panel">
+          <div class="feature-icon-box">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div>
+            <div class="feature-title">Role Based Access</div>
+            <div class="feature-sub">Admin & Operator Management</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM PROCESS TIMELINE PANEL -->
+      <div class="timeline-bottom-panel">
+        <div class="timeline-flow">
+          <div class="timeline-step active">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P10</div>
+            <div class="timeline-name">Assembly #10</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P30</div>
+            <div class="timeline-name">Assembly #30</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P40</div>
+            <div class="timeline-name">Assembly #40</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P50</div>
+            <div class="timeline-name">Assembly #50</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P60</div>
+            <div class="timeline-name">Assembly #60</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P41</div>
+            <div class="timeline-name">Garnish</div>
+          </div>
+          <div class="timeline-line"></div>
+
+          <div class="timeline-step">
+            <div class="timeline-dot"></div>
+            <div class="timeline-code">P51</div>
+            <div class="timeline-name">RRCVR</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between text-muted mt-3" style="font-size: 11px; opacity: 0.85;">
+          <div class="d-flex align-items-center gap-2">
+            <span style="color: #E4002B; font-weight: 900; font-size: 13px;">KIA</span>
+            <span class="text-white-50">|</span>
+            <span class="text-white fw-semibold">INDIA ANANTAPUR PLANT</span>
+          </div>
+          <div class="text-white-50">FLOOR PROCESS VALIDATION SYSTEM v1.0</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE – CLEAN FLOATING ENTERPRISE LOGIN CARD CONTAINER -->
+    <div class="kia-login-right">
+      
+      <!-- LARGE FLOATING LOGIN CARD -->
+      <div class="login-card-floating">
+        
+        <!-- TOP-RIGHT LANGUAGE SELECTOR -->
+        <div class="lang-selector-top">
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light dropdown-toggle rounded-pill px-3 shadow-none border" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: #F8FAFC; font-size: 13px; font-weight: 500; color: #52647A; border-color: #E2E8F0 !important;">
+              🌐 English
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+              <li><a class="dropdown-item active" href="#">English</a></li>
+              <li><a class="dropdown-item" href="#">Korean (한국어)</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CARD HEADER WITH KIA RED LOGO ON RIGHT -->
+        <div class="d-flex align-items-start justify-content-between mb-4 pt-1">
+          <div>
+            <h2 class="fw-bold mb-1" style="color: #10233F; font-size: 32px; letter-spacing: -0.5px;">Welcome <span style="color: #087FEA;">Back</span></h2>
+            <p class="mb-0" style="color: #64748B; font-size: 13.5px;">Sign in to FLOOR Process Validation System</p>
+          </div>
+          <!-- Red Kia Logo -->
+          <svg style="height: 28px; width: 70px;" viewBox="0 0 120 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 2L2 28H14L20 16L26 28H38L25 2Z" fill="#E4002B"/>
+            <path d="M45 2H57V28H45V2Z" fill="#E4002B"/>
+            <path d="M85 2L72 28H84L90 16L96 28H108L95 2Z" fill="#E4002B"/>
+          </svg>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
+          
+          {% if error_msg %}
+          <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2" style="font-size: 13px;">
+            <i class="bi bi-exclamation-triangle-fill fs-6"></i>
+            <div>{{ error_msg }}</div>
+          </div>
+          {% endif %}
+
+          <!-- EMPLOYEE ID FIELD -->
+          <div class="mb-3">
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-white text-muted border-end-0 ps-3" style="border-color: #E2E8F0; border-radius: 12px 0 0 12px;"><i class="bi bi-person fs-5" style="color: #64748B;"></i></span>
+              <input type="text" id="usernameInput" name="username" class="form-control bg-white border-start-0 py-3" style="border-color: #E2E8F0; border-radius: 0 12px 12px 0; font-size: 14px; color: #10233F;" placeholder="Employee ID" required value="admin">
+            </div>
+          </div>
+
+          <!-- PASSWORD FIELD WITH EYE SHOW/HIDE -->
+          <div class="mb-4">
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-white text-muted border-end-0 ps-3" style="border-color: #E2E8F0; border-radius: 12px 0 0 12px;"><i class="bi bi-lock fs-5" style="color: #64748B;"></i></span>
+              <input type="password" id="passwordInput" name="password" class="form-control bg-white border-start-0 border-end-0 py-3" style="border-color: #E2E8F0; font-size: 14px; color: #10233F;" placeholder="Password" required value="password">
+              <button type="button" class="input-group-text bg-white text-muted border-start-0 pe-3" onclick="togglePasswordVisibility()" style="border-color: #E2E8F0; border-radius: 0 12px 12px 0; cursor: pointer;">
+                <i class="bi bi-eye-slash fs-5" id="togglePasswordIcon" style="color: #94A3B8;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- LARGE PRIMARY LOGIN BUTTON -->
+          <button type="submit" class="btn btn-login-gradient mb-3 py-3 fs-6">
+            <i class="bi bi-box-arrow-in-right me-1 fs-5"></i> Login
+          </button>
+        </form>
+
+        <!-- SOFT BLUE SECURITY INFORMATION CARD -->
+        <div class="security-info-panel">
+          <i class="bi bi-check-circle-fill fs-5" style="color: #087FEA;"></i>
+          <div>
+            <div class="fw-bold" style="font-size: 13px; color: #10233F;">Authorized personnel only</div>
+            <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">Please use your assigned credentials to access the system.</div>
+          </div>
+        </div>
+
+        <!-- WIDE MANUFACTURING FACILITY BANNER BOX WITH MINUTE SHADOW -->
+        <div class="banner-image-box my-3 overflow-hidden">
+          <img src="{% static 'images/kia_plant_building.png' %}" alt="KIA Plant Facility Banner" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+        </div>
+
+        <!-- 3 SMALL INFORMATION BLOCKS -->
+        <div class="row text-center text-muted pt-1" style="font-size: 11px;">
+          <div class="col-4 border-end" style="border-color: #E2E8F0 !important;">
+            <i class="bi bi-building d-block fs-6 mb-1" style="color: #10233F;"></i>
+            <span class="fw-semibold" style="font-size: 11px; color: #10233F;">KIA Manufacturing</span>
+          </div>
+          <div class="col-4 border-end" style="border-color: #E2E8F0 !important;">
+            <i class="bi bi-layers d-block fs-6 mb-1" style="color: #10233F;"></i>
+            <span class="fw-semibold" style="font-size: 11px; color: #10233F;">Process Validation</span>
+          </div>
+          <div class="col-4">
+            <i class="bi bi-shield-check d-block fs-6 mb-1" style="color: #10233F;"></i>
+            <span class="fw-semibold" style="font-size: 11px; color: #10233F;">Better Quality</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('passwordInput');
+      const pwdIcon = document.getElementById('togglePasswordIcon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        pwdIcon.className = 'bi bi-eye fs-5';
+      } else {
+        pwdInput.type = 'password';
+        pwdIcon.className = 'bi bi-eye-slash fs-5';
+      }
+    }
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management – KIA Floor Process Validation System{% endblock %}
+{% block header_title %}User Management{% endblock %}
+
+{% block content %}
+<!-- ADMIN DEMO CONTROL BAR (SET STAGE & RESET DEMO) -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+  <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-sliders text-primary me-2"></i> Admin Demo Control & Stage Assignment</h6>
+    <span class="badge bg-danger">ADMIN ONLY</span>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{% url 'admin_set_stage' %}" class="row g-3 align-items-end">
+      {% csrf_token %}
+      <div class="col-md-4">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Select Production Unit / Barcode</label>
+        <select name="barcode" class="form-select fw-semibold">
+          {% for unit in production_units %}
+            <option value="{{ unit.barcode }}">{{ unit.barcode }} (Current: {{ unit.current_process.code }} | {{ unit.status }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Set Target Process Stage</label>
+        <select name="target_stage" class="form-select fw-semibold">
+          {% for p in processes %}
+            <option value="{{ p.code }}">{{ p.code }} – {{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" name="action" value="set_stage" class="btn btn-primary w-100 fw-bold">
+          <i class="bi bi-arrow-left-right me-1"></i> Set Stage
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" name="action" value="reset_all" class="btn btn-outline-danger w-100 fw-bold" onclick="return confirm('Reset all demo test results?')">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Demo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- USER MANAGEMENT CARD -->
+<div class="card border-0 shadow-sm rounded-3">
+  <!-- SEARCH BAR & ACTION BUTTONS -->
+  <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="input-group" style="max-width: 380px;">
+      <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+      <input type="text" id="userSearchInput" class="form-control bg-light border-start-0" placeholder="Search by ID, Name or Department..." onkeyup="filterUserTable()">
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-primary fw-bold d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addUserModal" style="background: #0284C7; border: none;">
+        <i class="bi bi-plus-lg"></i> Add User
+      </button>
+      <a href="{% url 'export_excel' %}" class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-2">
+        <i class="bi bi-box-arrow-up"></i> Export
+      </a>
+    </div>
+  </div>
+
+  <!-- USER TABLE WITH USERNAME & PASSWORD CREDENTIALS COLUMN FOR ADMIN -->
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table-custom" id="userTable">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Process Access</th>
+            <th>Assigned Password</th>
+            <th style="width: 90px;">Status</th>
+            <th style="width: 120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in all_users %}
+          <tr>
+            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+            <td><code>{{ u.operator_id }}</code></td>
+            <td>
+              <strong class="text-dark">{{ u.full_name }}</strong>
+              {% if u.id == current_user.id %}
+                <span class="badge bg-success ms-1" style="font-size: 9px;">YOU</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.role == 'ADMIN' %}
+                <span class="badge bg-light text-dark border fw-bold">Admin</span>
+              {% else %}
+                <span class="badge bg-light text-secondary border">Employee</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.assigned_process %}
+                <span class="fw-bold text-dark">{{ u.assigned_process.code }} - {{ u.assigned_process.name }}</span>
+              {% else %}
+                <span class="text-muted" style="font-size: 12px;">All Processes (P10, P30, P40, P50, P60, P41, P51)</span>
+              {% endif %}
+            </td>
+            <td>
+              <!-- ADMIN PASSWORD VIEW EYE TOGGLE -->
+              <div class="d-flex align-items-center gap-2">
+                <span id="pwdText_{{ u.id }}" class="font-monospace text-muted" style="font-size: 12px;">••••••••</span>
+                <button type="button" class="btn btn-sm btn-light border p-1" onclick="toggleUserPassword({{ u.id }}, '{{ u.password_text }}')" title="View Password">
+                  <i class="bi bi-eye-slash" id="pwdEye_{{ u.id }}" style="font-size: 12px;"></i>
+                </button>
+              </div>
+            </td>
+            <td>
+              <span class="status-pill pill-pass">Active</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-1">
+                <button class="btn btn-sm btn-primary py-1 px-2" title="Switch to user session" onclick="switchUserSession({{ u.id }})">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-sm btn-danger py-1 px-2" title="Delete account">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'users' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_user">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill text-primary me-2"></i> Add Operator Account</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Employee ID</label>
+            <input type="text" name="operator_id" class="form-control" placeholder="e.g. EMP040" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Full Name</label>
+            <input type="text" name="full_name" class="form-control" placeholder="e.g. P40 Operator" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="e.g. EMP040" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Assigned Password</label>
+            <input type="text" name="password_text" class="form-control" value="password" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Role</label>
+            <select name="role" class="form-select">
+              <option value="OPERATOR" selected>Employee (Operator)</option>
+              <option value="ADMIN">Admin (Administrator)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Assigned Process Station</label>
+            <select name="assigned_process" class="form-select">
+              <option value="none">- All Processes (Admin) -</option>
+              {% for p in processes %}
+                <option value="{{ p.id }}">{{ p.code }} – {{ p.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold">Add Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function filterUserTable() {
+    const input = document.getElementById("userSearchInput").value.toUpperCase();
+    const rows = document.getElementById("userTable").getElementsByTagName("tr");
+    for (let i = 1; i < rows.length; i++) {
+      const text = rows[i].innerText.toUpperCase();
+      rows[i].style.display = text.indexOf(input) > -1 ? "" : "none";
+    }
+  }
+
+  function toggleUserPassword(userId, rawPassword) {
+    const pwdText = document.getElementById(`pwdText_${userId}`);
+    const pwdEye = document.getElementById(`pwdEye_${userId}`);
+    if (pwdText.innerText === '••••••••') {
+      pwdText.innerText = rawPassword;
+      pwdText.className = 'font-monospace text-primary fw-bold';
+      pwdEye.className = 'bi bi-eye-fill text-primary';
+    } else {
+      pwdText.innerText = '••••••••';
+      pwdText.className = 'font-monospace text-muted';
+      pwdEye.className = 'bi bi-eye-slash';
+    }
+  }
+</script>
+{% endblock %}

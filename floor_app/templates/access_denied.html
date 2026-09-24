@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Access Restricted – {{ target_process.code }}{% endblock %}
+{% block header_title %}<a href="{% url 'process_validation' current_user.assigned_process.code %}" class="text-decoration-none text-dark me-2"><i class="bi bi-arrow-left"></i></a> {{ target_process.code }} - {{ target_process.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4 align-items-stretch">
+  <!-- LEFT: MAIN ACCESS RESTRICTED CARD -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-4 text-center p-4 p-md-5 h-100 d-flex flex-column align-items-center justify-content-center" style="background: #FFFFFF;">
+      
+      <!-- RED LOCK ICON -->
+      <div class="mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background: #FEE2E2; border: 2px solid #FCA5A5;">
+          <i class="bi bi-lock-fill fs-1 text-danger"></i>
+        </div>
+      </div>
+
+      <!-- HEADING & SUBTITLE -->
+      <h3 class="fw-bold text-dark mb-2">Access Restricted</h3>
+      <p class="text-muted fs-6 mb-4">
+        You are logged in as <strong>{{ current_user.full_name }}</strong>.<br>
+        You can access only <strong>{{ current_user.assigned_process.code }} ({{ current_user.assigned_process.name }})</strong> process.
+      </p>
+
+      <!-- BLUE INFO BOX -->
+      <div class="alert alert-primary border-0 rounded-3 d-flex align-items-center gap-3 p-3 mb-4 text-start" style="background: #EFF6FF; color: #1E40AF; max-width: 480px;">
+        <i class="bi bi-info-circle-fill fs-4 text-primary"></i>
+        <div style="font-size: 13px;">
+          Please contact your administrator if you need access to this process.
+        </div>
+      </div>
+
+      <!-- BACK TO ASSIGNED STATION BUTTON -->
+      <div>
+        {% if current_user.assigned_process %}
+        <a href="{% url 'process_validation' current_user.assigned_process.code %}" class="btn btn-outline-secondary fw-bold px-4 py-2" style="font-size: 14px;">
+          <i class="bi bi-arrow-left me-2"></i> Back to {{ current_user.assigned_process.code }}
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: VERTICAL PROCESS STAGE PIPELINE CARD (MATCHING REFERENCE IMAGE) -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+      <h6 class="fw-bold text-dark mb-3 px-2" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+        <i class="bi bi-diagram-3-fill text-primary me-2"></i> Station Permissions
+      </h6>
+
+      <div class="d-flex flex-column gap-2">
+        {% for proc in all_processes %}
+          {% if current_user.assigned_process and current_user.assigned_process.code == proc.code %}
+            <div class="p-3 rounded-3 d-flex align-items-center justify-content-between border" style="background: #EFF6FF; border-color: #BFDBFE !important;">
+              <div class="d-flex align-items-center gap-3">
+                <span class="badge rounded-circle bg-primary p-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                  <i class="bi bi-check-lg text-white"></i>
+                </span>
+                <div>
+                  <strong class="d-block text-primary" style="font-size: 13px;">{{ proc.code }}</strong>
+                  <span class="text-primary" style="font-size: 11px;">{{ proc.name }}</span>
+                </div>
+              </div>
+              <span class="badge bg-primary">ACTIVE</span>
+            </div>
+          {% else %}
+            <div class="p-3 rounded-3 d-flex align-items-center justify-content-between border bg-light">
+              <div class="d-flex align-items-center gap-3">
+                <span class="badge rounded-circle bg-white text-danger border border-danger p-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                  <i class="bi bi-lock-fill" style="font-size: 11px;"></i>
+                </span>
+                <div>
+                  <strong class="d-block text-dark" style="font-size: 13px;">{{ proc.code }}</strong>
+                  <span class="text-muted" style="font-size: 11px;">{{ proc.name }}</span>
+                </div>
+              </div>
+              <i class="bi bi-lock-fill text-danger fs-6"></i>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

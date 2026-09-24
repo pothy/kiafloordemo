@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Master Data & System Settings{% endblock %}
+{% block header_title %}Settings & Master Data{% endblock %}
+
+{% block content %}
+<!-- TOP NAV TABS -->
+<ul class="nav nav-tabs mb-4 border-bottom">
+  <li class="nav-item">
+    <a class="nav-link active fw-bold" href="#tabDb" data-bs-toggle="tab"><i class="bi bi-database me-1"></i> Database Connection</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link fw-bold" href="#tabProcess" data-bs-toggle="tab"><i class="bi bi-diagram-3 me-1"></i> Process Configuration</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link fw-bold" href="#tabHardware" data-bs-toggle="tab"><i class="bi bi-router me-1"></i> Hardware Simulators</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- 1. DATABASE CONNECTION SETTINGS -->
+  <div class="tab-pane fade show active" id="tabDb">
+    <div class="card border-0 shadow-sm rounded-3 col-lg-8">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-hdd-network text-primary me-2"></i> SQL Server Reference Connection</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{% url 'settings' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_db_settings">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Server IP / Hostname</label>
+              <input type="text" name="db_server_ip" class="form-control" value="{{ settings.db_server_ip }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Port</label>
+              <input type="number" name="db_port" class="form-control" value="{{ settings.db_port }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Database Name</label>
+              <input type="text" name="db_name" class="form-control" value="{{ settings.db_name }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Username</label>
+              <input type="text" name="db_username" class="form-control" value="{{ settings.db_username }}">
+            </div>
+            <div class="col-md-12">
+              <label class="form-label text-muted fw-semibold" style="font-size: 12px;">Password</label>
+              <input type="password" name="db_password" class="form-control" value="••••••••">
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex align-items-center justify-content-between">
+            <button type="button" class="btn btn-outline-primary fw-bold" onclick="showToast('Test Connection Successful: Connected to SQL Server', 'success')">
+              <i class="bi bi-plug-fill me-1"></i> Test Connection
+            </button>
+            <button type="submit" class="btn btn-primary fw-bold">
+              Save Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. PROCESS CONFIGURATION TABLE -->
+  <div class="tab-pane fade" id="tabProcess">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-diagram-3-fill text-primary me-2"></i> Process Sequence & Dependency Configuration</h6>
+        <span class="badge bg-light text-dark border">Configuration Driven</span>
+      </div>
+      <div class="card-body p-0">
+        <form method="POST" action="{% url 'settings' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_process_config">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Process Code</th>
+                  <th>Process Name</th>
+                  <th style="width: 100px;">Sequence</th>
+                  <th>Before Process (Prerequisite)</th>
+                  <th style="width: 100px;">Check</th>
+                  <th style="width: 100px;">Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in processes %}
+                <tr>
+                  <td class="fw-bold"><code>{{ p.code }}</code></td>
+                  <td>{{ p.name }}</td>
+                  <td>
+                    <input type="number" name="seq_{{ p.id }}" class="form-control form-control-sm text-center fw-bold" value="{{ p.sequence }}">
+                  </td>
+                  <td>
+                    <select name="dep_{{ p.id }}" class="form-select form-select-sm">
+                      <option value="none" {% if not p.before_process %}selected{% endif %}>- None -</option>
+                      {% for dep in processes %}
+                        {% if dep.id != p.id %}
+                          <option value="{{ dep.id }}" {% if p.before_process and p.before_process.id == dep.id %}selected{% endif %}>{{ dep.code }} ({{ dep.name }})</option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-success">Yes</span>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check form-switch d-inline-block">
+                      <input class="form-check-input" type="checkbox" name="active_{{ p.id }}" {% if p.is_active %}checked{% endif %}>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-3 bg-white text-end border-top">
+            <button type="submit" class="btn btn-primary fw-bold">
+              <i class="bi bi-check-lg me-1"></i> Save Process Configuration
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. HARDWARE SIMULATORS -->
+  <div class="tab-pane fade" id="tabHardware">
+    <div class="card border-0 shadow-sm rounded-3 col-lg-8">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-cpu-fill text-primary me-2"></i> Hardware Simulation Interfaces</h6>
+      </div>
+      <div class="card-body">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="simBarcode" checked>
+          <label class="form-check-label fw-bold" for="simBarcode">Simulated Barcode Generator / Scanner Interface</label>
+          <div class="text-muted" style="font-size: 12px;">Auto-generates demo barcodes and simulates USB/Serial scanner inputs.</div>
+        </div>
+
+        <div class="form-check form-switch mb-3 border-top pt-3">
+          <input class="form-check-input" type="checkbox" id="simPlc" checked>
+          <label class="form-check-label fw-bold" for="simPlc">Simulated PLC MELSEC Communication Adapter</label>
+          <div class="text-muted" style="font-size: 12px;">Emulates socket read/write signals for interlocks and conveyor status.</div>
+        </div>
+
+        <div class="form-check form-switch mb-3 border-top pt-3">
+          <input class="form-check-input" type="checkbox" id="simScrew" checked>
+          <label class="form-check-label fw-bold" for="simScrew">Simulated Screw / Torque Controller Count</label>
+          <div class="text-muted" style="font-size: 12px;">Simulates bolt tightening cycle feedback without physical torque guns.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

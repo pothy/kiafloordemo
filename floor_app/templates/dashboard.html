@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard – KIA Floor Process Validation System{% endblock %}
+{% block header_title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<!-- HEADER KPI CARDS MATCHING REFERENCE IMAGE -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2-4 col-6">
+    <div class="kpi-card p-3">
+      <div class="kpi-icon-box kpi-icon-total" style="width: 44px; height: 44px; font-size: 20px;">
+        <i class="bi bi-card-checklist"></i>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-val text-primary" style="font-size: 22px;">{{ total_requests }}</div>
+        <label style="font-size: 11px;">Total Requests</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2-4 col-6">
+    <div class="kpi-card p-3">
+      <div class="kpi-icon-box kpi-icon-pass" style="width: 44px; height: 44px; font-size: 20px;">
+        <i class="bi bi-play-circle-fill"></i>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-val text-success" style="font-size: 22px;">{{ in_progress_count }}</div>
+        <label style="font-size: 11px;">In Progress</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2-4 col-6">
+    <div class="kpi-card p-3">
+      <div class="kpi-icon-box kpi-icon-pending" style="width: 44px; height: 44px; font-size: 20px;">
+        <i class="bi bi-clock-fill"></i>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-val text-warning" style="font-size: 22px;">{{ waiting_count }}</div>
+        <label style="font-size: 11px;">Waiting</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2-4 col-6">
+    <div class="kpi-card p-3">
+      <div class="kpi-icon-box kpi-icon-fail" style="width: 44px; height: 44px; font-size: 20px; background: #FEE2E2; color: #EF4444;">
+        <i class="bi bi-pause-circle-fill"></i>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-val text-danger" style="font-size: 22px;">{{ paused_count }}</div>
+        <label style="font-size: 11px;">Paused</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-2-4 col-6">
+    <div class="kpi-card p-3">
+      <div class="kpi-icon-box" style="width: 44px; height: 44px; font-size: 20px; background: #F1F5F9; color: #475569;">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="kpi-info">
+        <div class="kpi-val text-secondary" style="font-size: 22px;">{{ completed_today }}</div>
+        <label style="font-size: 11px;">Completed Today</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN GRID: CURRENT IN-PROGRESS REQUEST & REQUEST QUEUE / OPERATOR STATUS -->
+<div class="row g-4">
+  
+  <!-- LEFT: CURRENT IN-PROGRESS REQUEST CARD -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-broadcast text-primary me-2"></i> Current In-Progress Request</h6>
+        <span class="badge bg-success text-white px-2 py-1"><i class="bi bi-record-fill me-1"></i> LIVE</span>
+      </div>
+      <div class="card-body">
+        {% if active_request %}
+        <div class="p-3 rounded-3 mb-4 border" style="background: #F8FAFC;">
+          <div class="row g-3" style="font-size: 13px;">
+            <div class="col-6">
+              <span class="text-muted d-block" style="font-size: 11px;">Request ID</span>
+              <strong class="font-monospace text-dark fs-6">{{ active_request.request_id }}</strong>
+            </div>
+            <div class="col-6 text-end">
+              <span class="text-muted d-block" style="font-size: 11px;">Current Process</span>
+              <strong class="text-primary fs-6">{{ active_request.current_process.code }} - {{ active_request.current_process.name }}</strong>
+            </div>
+            
+            <div class="col-4">
+              <span class="text-muted d-block" style="font-size: 11px;">Model</span>
+              <strong class="text-dark">{{ active_request.car_type }}</strong>
+            </div>
+            <div class="col-4 text-center">
+              <span class="text-muted d-block" style="font-size: 11px;">ALC</span>
+              <strong class="text-dark">{{ active_request.alc }}</strong>
+            </div>
+            <div class="col-4 text-end">
+              <span class="text-muted d-block" style="font-size: 11px;">Start Time</span>
+              <span class="text-dark fw-semibold">{{ active_request.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+
+            <div class="col-12 border-top pt-2 mt-2">
+              <span class="text-muted" style="font-size: 11px;">Operator: </span>
+              <strong class="text-dark">
+                {% if active_request.assigned_operator %}
+                  {{ active_request.assigned_operator.operator_id }} ({{ active_request.assigned_operator.full_name }})
+                {% else %}
+                  Unassigned
+                {% endif %}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROCESS NODES PIPELINE -->
+        <div class="d-flex align-items-center justify-content-between my-4 px-2">
+          {% for proc in all_processes %}
+          <div class="text-center">
+            <div class="node-circle {% if proc.sequence < active_request.current_process.sequence %}completed{% elif proc.code == active_request.current_process.code %}current{% else %}pending{% endif %}" style="width: 28px; height: 28px; font-size: 11px;">
+              {% if proc.sequence < active_request.current_process.sequence %}
+                <i class="bi bi-check-lg"></i>
+              {% elif proc.code == active_request.current_process.code %}
+                <i class="bi bi-arrow-repeat"></i>
+              {% else %}
+                {{ proc.sequence }}
+              {% endif %}
+            </div>
+            <div class="fw-bold" style="font-size: 11px; margin-top: 4px;">{{ proc.code }}</div>
+            <div class="text-muted" style="font-size: 9px;">{{ proc.name|truncatechars:8 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- ADMIN ACTION BUTTONS MATCHING MOCKUP -->
+        <div class="row g-2 mt-4 pt-2 border-top">
+          <div class="col-4">
+            <button class="btn btn-warning w-100 fw-bold py-2 text-white" onclick="executeRequestAction('pause', '{{ active_request.request_id }}')" style="background: #F97316; border: none;">
+              <i class="bi bi-pause-fill me-1"></i> {% if active_request.status == 'PAUSED' %}Resume{% else %}Pause{% endif %}
+            </button>
+          </div>
+          <div class="col-4">
+            <button class="btn btn-danger w-100 fw-bold py-2" onclick="executeRequestAction('stop', '{{ active_request.request_id }}')">
+              <i class="bi bi-stop-fill me-1"></i> Stop
+            </button>
+          </div>
+          <div class="col-4">
+            <button class="btn btn-primary w-100 fw-bold py-2" onclick="executeRequestAction('pass_next', '{{ active_request.request_id }}')" style="background: #0284C7; border: none;">
+              <i class="bi bi-arrow-right-circle-fill me-1"></i> Pass to Next
+            </button>
+          </div>
+          <div class="col-12 mt-2">
+            <a href="{% url 'process_validation' active_request.current_process.code %}?barcode={{ active_request.barcode }}" class="btn btn-outline-secondary w-100 fw-semibold py-1-5">
+              <i class="bi bi-eye-fill me-1"></i> View Details
+            </a>
+          </div>
+        </div>
+
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+          <span>No active request in progress.</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: REQUEST QUEUE & OPERATORS STATUS -->
+  <div class="col-lg-6">
+    <div class="row g-4">
+      
+      <!-- REQUEST QUEUE (WAITING) -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3 bg-white">
+          <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-list-stars text-primary me-2"></i> Request Queue (Waiting)</h6>
+            <button class="btn btn-sm btn-primary fw-bold" onclick="executeRequestAction('create', '')" style="background: #0284C7; border: none;">
+              <i class="bi bi-plus-lg me-1"></i> New Request
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th style="width: 30px;">#</th>
+                    <th>Request ID</th>
+                    <th>Model</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th style="width: 80px;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for req in waiting_requests %}
+                  <tr>
+                    <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                    <td><code>{{ req.request_id }}</code></td>
+                    <td>{{ req.car_type }}</td>
+                    <td>
+                      {% if req.priority == 'HIGH' %}
+                        <span class="badge bg-danger">High</span>
+                      {% elif req.priority == 'LOW' %}
+                        <span class="badge bg-secondary">Low</span>
+                      {% else %}
+                        <span class="badge bg-info text-dark">Normal</span>
+                      {% endif %}
+                    </td>
+                    <td><span class="status-pill pill-pending">Waiting</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-primary py-0 px-2 fw-bold" style="font-size: 11px;" onclick="executeRequestAction('assign', '{{ req.request_id }}')">
+                        Assign
+                      </button>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No waiting requests in queue.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPERATORS STATUS GRID -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3 bg-white">
+          <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-people-fill text-primary me-2"></i> Operators Status</h6>
+            <a href="{% url 'users' %}" class="btn btn-sm btn-link text-decoration-none fw-bold">View All</a>
+          </div>
+          <div class="card-body">
+            <div class="row g-2">
+              {% for item in operator_statuses %}
+              <div class="col-md-3 col-6">
+                <div class="p-2 rounded border {% if item.is_working %}border-success bg-light{% else %}bg-white{% endif %} text-center" style="font-size: 12px;">
+                  <strong class="d-block text-dark" style="font-size: 11px;">{{ item.user.assigned_process.code|default:"ADMIN" }}</strong>
+                  <div class="text-muted" style="font-size: 10px;">{{ item.user.operator_id }}</div>
+                  {% if item.is_working %}
+                    <span class="badge bg-success" style="font-size: 9px;">In Progress</span>
+                  {% else %}
+                    <span class="badge bg-light text-muted border" style="font-size: 9px;">Idle</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function executeRequestAction(action, reqId) {
+    const payload = { action: action, request_id: reqId };
+    fetch('/api/admin-request-action/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        showToast(data.message, 'success');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        showToast(`Error: ${data.message}`, 'error');
+      }
+    });
+  }
+</script>
+{% endblock %}

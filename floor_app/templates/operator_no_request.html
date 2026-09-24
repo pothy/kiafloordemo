@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}No Active Request – {{ target_process.code }}{% endblock %}
+{% block header_title %}{{ target_process.code }} - {{ target_process.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center py-5 min-vh-75 position-relative">
+  
+  <!-- CENTERED NO REQUEST CARD MATCHING REFERENCE IMAGE -->
+  <div class="card border-0 shadow-lg rounded-4 text-center p-4 p-md-5 mb-5" style="max-width: 580px; background: #FFFFFF; position: relative; z-index: 2;">
+    
+    <!-- ILLUSTRATION ICON -->
+    <div class="mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; background: #F1F5F9; border: 2px solid #E2E8F0;">
+        <i class="bi bi-box-seam fs-1 text-secondary opacity-75"></i>
+      </div>
+    </div>
+
+    <!-- TITLE & SUBTITLE -->
+    <h3 class="fw-extrabold text-dark mb-2">No Active Request</h3>
+    <p class="text-muted fs-6 mb-4">
+      There is no request assigned to <strong>{{ target_process.code }} ({{ target_process.name }})</strong> at the moment.
+    </p>
+
+    <!-- BLUE INFO NOTICE BOX -->
+    <div class="alert alert-primary border-0 rounded-3 d-flex align-items-center gap-3 p-3 mb-2 text-start" style="background: #EFF6FF; color: #1E40AF;">
+      <i class="bi bi-info-circle-fill fs-4 text-primary"></i>
+      <div style="font-size: 13px;">
+        Please wait for the administrator to assign a new request to you.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM BACKGROUND FLOOR IMAGE DECORATION -->
+  <div class="w-100 position-absolute bottom-0 start-0 text-center opacity-25 pointer-events-none" style="z-index: 1;">
+    <img src="{% static 'images/kia_mq4_car.png' %}" alt="Kia Assembly Line" style="max-height: 180px; object-fit: contain; filter: grayscale(100%);">
+  </div>
+
+</div>
+{% endblock %}
